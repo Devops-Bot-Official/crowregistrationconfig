@@ -9,8 +9,8 @@ environment:
   SOURCE_URL:   { value: crowstore://REGISTRATIONPAGE_URL }
   GIT_TOKEN:    { value: crowstore://gittoken }
   
-  DOCKER_USERNAME:    { value: crowstore://dockerusername }
-  DOCKER_PASSWORD:    { value: crowstore://dockerpassword }
+  DOCKER_USERNAME:    { value: crowstore://CROWREGNAME }
+  DOCKER_PASSWORD:    { value: crowstore://CROWREGNAMEPASS }
 
   IMAGE_NAME:    { value: crowstore://REGISTRATIONPAGEIMAGE }
 
@@ -20,8 +20,8 @@ environment:
 
   CROWSTORE_TOKEN_GITTOKEN:    { value: ee63e33b6b98a72756d732e115a5d256 }
  
-  CROWSTORE_TOKEN_DOCKERUSERNAME: { value: 96432ccb7604b08bc8e62fcdb593e192 }
-  CROWSTORE_TOKEN_DOCKERPASSWORD: { value: f4cdb4396653f858b2bc1a2897a354ac }
+  CROWSTORE_TOKEN_CROWREGNAME: { value: 59618baf11885921fbcb491b420b0856 }
+  CROWSTORE_TOKEN_CROWREGNAMEPASS: { value: 03ba3a029d583c5c73c4464a9f85cd1d }
   
   CROWSTORE_TOKEN_REGISTRATIONPAGEIMAGE: { value: b76e56eb842600e44e69c2854d4f66d7 }
 
