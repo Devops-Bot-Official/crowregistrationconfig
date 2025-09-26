@@ -1,0 +1,108 @@
+version: '1.0'
+mode: remote
+identifier: AzureCrowRunner
+category: Production
+username: crowuser
+environment:
+  # === Crowstore-backed values ===
+  CLONE_DIR:    { value: crowstore://frontendclonedir }
+  SOURCE_URL:   { value: crowstore://frontendurl }
+  GIT_TOKEN:    { value: crowstore://gittoken }
+  
+  DOCKER_USERNAME:    { value: crowstore://dockerusername }
+  DOCKER_PASSWORD:    { value: crowstore://dockerpassword }
+
+  IMAGE_NAME:    { value: crowstore://imageame }
+
+  # These must match the *names after* crowstore:// exactly (uppercased, no extra underscores).
+  CROWSTORE_TOKEN_FRONTENDCLONEDIR:    { value: 8f6e91b95f2a26b09ad1dfd2fbaf1dfd1 }
+  CROWSTORE_TOKEN_FRONTENDURL:   { value: c1b966b518f942abc727c91a26d40c51 }
+
+  CROWSTORE_TOKEN_GITTOKEN:    { value: ee63e33b6b98a72756d732e115a5d256 }
+ 
+  CROWSTORE_TOKEN_DOCKERUSERNAME: { value: 96432ccb7604b08bc8e62fcdb593e192 }
+  CROWSTORE_TOKEN_DOCKERPASSWORD: { value: f4cdb4396653f858b2bc1a2897a354ac }
+  
+  CROWSTORE_TOKEN_IMAGEAME: { value: b76e56eb842600e44e69c2854d4f66d7 }
+
+jobs:
+- name: CROW FRONTEND BUILD
+  stages:
+  - name: Updating Azure Server
+    tasks:
+      shell:
+        enabled: false
+        shell: bash
+        steps:
+        - sudo apt-get update -y
+  # ======== Core: Checkout (invokes your Python helper under the hood new) ========
+  - name: Git Checkout one
+    tasks:
+      checkout:
+        enabled: true
+        private_repo: true
+        # --- required / important fields your function expects ---
+        clone_dir: /home/crowuser/frontend
+        source_url: env=SOURCE_URL
+        branches: 
+        - main
+        provider: github
+        username: Devops-Bot-Official
+        token: env=GIT_TOKEN
+
+  # 1) Install ALL deps (including dev) — no NODE_ENV here
+  - name: NPM | Install dev deps
+    tasks:
+      npm:
+        enabled: true
+        working_directory: "/home/crowuser/frontend"
+        # DO NOT set node_env here
+        clean_node_modules: true         # optional but recommended after Node upgrade
+        omit_dev: false                  # ensure dev deps are allowed
+        ignore_scripts: false
+        legacy_peer_deps: false
+        env:                              # force npm to include dev even if env is
+          npm_config_production: "false"
+        steps:
+          install: true
+          build: false
+          test: false
+          install_args: ["--include=dev", "--no-audit", "--no-fund"]
+          build_args: []
+          test_args: []
+          scripts: []
+  
+  # 2) Build with production env (now vite is present locally)
+  - name: NPM | Install, build
+    tasks:
+      npm:
+        enabled: true
+        working_directory: "/home/crowuser/frontend"
+        node_env: "production"           # only for the build step
+        omit_dev: false                  # irrelevant here; we are not instal
+        steps:
+          install: false
+          build: true
+          test: false
+          build_script: "build"
+          build_args: []
+          scripts: []           
+            
+  - name: Image Build Stage
+    tasks:
+      docker_build:
+        enabled: true
+        image_name: env=IMAGE_NAME
+        build_tag: V.0.1.92
+        dockerfile_path: /home/crowuser/frontend/Dockerfile     
+                         
+          
+  - name: docker push stage
+    tasks:
+      docker_push:
+        enabled: true
+        provider: azure
+        image_name: env=IMAGE_NAME
+        image_tag: V.0.1.92
+        username: env=DOCKER_USERNAME
+        password: env=DOCKER_PASSWORD
